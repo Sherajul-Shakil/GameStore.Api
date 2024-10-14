@@ -23,6 +23,12 @@ namespace GameStore.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("GenreId")
                         .HasColumnType("INTEGER");
 
@@ -34,6 +40,9 @@ namespace GameStore.Api.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<DateOnly>("ReleaseDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -49,40 +58,22 @@ namespace GameStore.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.ToTable("Genres");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Fighting"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Roleplaying"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Sports"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Racing"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "Kids and Family"
-                        });
                 });
 
             modelBuilder.Entity("GameStore.Api.Entities.User", b =>

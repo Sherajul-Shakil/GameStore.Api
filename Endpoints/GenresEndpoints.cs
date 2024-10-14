@@ -1,4 +1,5 @@
-﻿using GameStore.Api.Data;
+﻿using System.Security.Claims;
+using GameStore.Api.Data;
 using GameStore.Api.Dtos;
 using GameStore.Api.Entities;
 using GameStore.Api.Mapping;
@@ -13,17 +14,42 @@ public static class GenresEndpoints
 	public static RouteGroupBuilder MapGenresEndpoints(this WebApplication app)
 	{
 		var group = app.MapGroup("genres")
-					.WithParameterValidation();
+					.WithParameterValidation()
+					.RequireAuthorization();
 
 		// GET /genres
-		group.MapGet("/", async (GameStoreContext dbContext) =>
-			await dbContext.Genres
+		group.MapGet("/", async (GameStoreContext dbContext, HttpContext httpContext) =>
+			{
+				try
+				{
+					var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+					if (userId == 0)
+					{
+						return Results.Unauthorized();
+					}
+
+					var genres = await dbContext.Genres
 						.AsNoTracking()
-						.ToListAsync());
+						.Where(g => g.CreatedBy == userId)
+						.ToListAsync();
+
+					return Results.Ok(genres);
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error getting genres: {ex.Message}");
+					return Results.BadRequest("Error getting genres.");
+				}
+			});
 
 		// GET /genres/1
-		group.MapGet("/{id}", async (int id, GameStoreContext dbContext) =>
+		group.MapGet("/{id}", async (int id, GameStoreContext dbContext, HttpContext httpContext) =>
 		{
+			var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+			if (userId == 0)
+			{
+				return Results.Unauthorized();
+			}
 			Genre? genre = await dbContext.Genres.FindAsync(id);
 
 			return genre is null ?
@@ -32,11 +58,22 @@ public static class GenresEndpoints
 		.WithName(GetGenreEndpointName);
 
 		// POST /genres
-		group.MapPost("/", async (CreateGenreDto newGenre, GameStoreContext dbContext) =>
+		group.MapPost("/", async (CreateGenreDto newGenre, GameStoreContext dbContext, HttpContext httpContext) =>
 		{
 			try
 			{
+				// Get the user ID from the JWT token
+				var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+				if (userId == 0)
+				{
+					return Results.Unauthorized();
+				}
+
 				Genre genre = newGenre.ToEntity();
+				genre.CreatedBy = userId;
+				genre.CreatedAt = DateTime.UtcNow;
+				genre.UpdatedAt = DateTime.UtcNow;
+
 				dbContext.Genres.Add(genre);
 				await dbContext.SaveChangesAsync();
 
@@ -53,38 +90,54 @@ public static class GenresEndpoints
 		});
 
 		// PUT /genres/1
-		group.MapPut("/{id}", async (int id, UpdateGenreDto updatedGenre, GameStoreContext dbContext) =>
-		{
-			try
+		group.MapPut("/{id}", async (int id, UpdateGenreDto updatedGenre, GameStoreContext dbContext, HttpContext httpContext) =>
 			{
-				Genre? existingGenre = await dbContext.Genres.FindAsync(id);
-
-				if (existingGenre is null)
+				try
 				{
-					return Results.NotFound("Genre not found.");
+					Genre? existingGenre = await dbContext.Genres.FindAsync(id);
+
+					if (existingGenre is null)
+					{
+						return Results.NotFound("Genre not found.");
+					}
+
+					var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+					if (userId == 0)
+					{
+						return Results.Unauthorized();
+					}
+
+					dbContext.Entry(existingGenre)
+							.CurrentValues
+							.SetValues(updatedGenre.ToEntity(id));
+
+					existingGenre.CreatedBy = userId;
+					existingGenre.CreatedAt = existingGenre.CreatedAt;
+					existingGenre.UpdatedAt = DateTime.UtcNow;
+
+
+					await dbContext.SaveChangesAsync();
+					existingGenre = await dbContext.Genres.FindAsync(id);
+
+					return Results.Ok(existingGenre);
 				}
-
-				dbContext.Entry(existingGenre)
-						.CurrentValues
-						.SetValues(updatedGenre.ToEntity(id));
-
-				await dbContext.SaveChangesAsync();
-				existingGenre = await dbContext.Genres.FindAsync(id);
-
-				return Results.Ok(existingGenre);
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error updating genre: {ex.Message}");
-				return Results.BadRequest("Error updating genre.");
-			}
-		});
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error updating genre: {ex.Message}");
+					return Results.BadRequest("Error updating genre.");
+				}
+			});
 
 		// DELETE /genres/1
-		group.MapDelete("/{id}", async (int id, GameStoreContext dbContext) =>
+		group.MapDelete("/{id}", async (int id, GameStoreContext dbContext, HttpContext httpContext) =>
 		{
 			try
 			{
+				var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+				if (userId == 0)
+				{
+					return Results.Unauthorized();
+				}
 				var rowsAffected = await dbContext.Genres
 					.Where(genre => genre.Id == id)
 					.ExecuteDeleteAsync();

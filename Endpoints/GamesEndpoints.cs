@@ -3,6 +3,7 @@ using GameStore.Api.Dtos;
 using GameStore.Api.Entities;
 using GameStore.Api.Mapping;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace GameStore.Api.Endpoints;
 
@@ -13,52 +14,102 @@ public static class GamesEndpoints
 	public static RouteGroupBuilder MapGamesEndpoints(this WebApplication app)
 	{
 		var group = app.MapGroup("games")
-					.WithParameterValidation();
+					.WithParameterValidation()
+					.RequireAuthorization();
 
 		// GET /games
-		group.MapGet("/", async (GameStoreContext dbContext) =>
-			await dbContext.Games
+		group.MapGet("/", async (GameStoreContext dbContext, HttpContext httpContext) =>
+		{
+			try
+			{
+				var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+				if (userId == 0)
+				{
+					return Results.Unauthorized();
+				}
+				var games = await dbContext.Games
 					.Include(game => game.Genre)
+					.Where(g => g.CreatedBy == userId)
 					.Select(game => game.ToGameSummaryDto())
 					.AsNoTracking()
-					.ToListAsync());
+					.ToListAsync();
+
+				return Results.Ok(games);
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error getting games: {ex.Message}");
+				return Results.BadRequest("Error getting games.");
+			}
+		});
 
 		// GET /games/1
-		group.MapGet("/{id}", async (int id, GameStoreContext dbContext) =>
+		group.MapGet("/{id}", async (int id, GameStoreContext dbContext, HttpContext httpContext) =>
 		{
-			Game? game = await dbContext.Games.FindAsync(id);
+			try
+			{
+				var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+				if (userId == 0)
+				{
+					return Results.Unauthorized();
+				}
+				Game? game = await dbContext.Games
+					.Include(game => game.Genre)
+					.Where(g => g.CreatedBy == userId)
+					.FirstOrDefaultAsync(g => g.Id == id);
 
-			return game is null ?
-				Results.NotFound() : Results.Ok(game.ToGameDetailsDto());
+				return game is null ?
+					Results.NotFound() : Results.Ok(game.ToGameDetailsDto());
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error getting game: {ex.Message}");
+				return Results.BadRequest("Error getting game.");
+			}
 		})
 		.WithName(GetGameEndpointName);
 
 		// POST /games
-		group.MapPost("/", async (CreateGameDto newGame, GameStoreContext dbContext) =>
+		group.MapPost("/", async (CreateGameDto newGame, GameStoreContext dbContext, HttpContext httpContext) =>
+		{
+			try
 			{
-				try
+				var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+				if (userId == 0)
 				{
-					Game game = newGame.ToEntity();
-					dbContext.Games.Add(game);
-					await dbContext.SaveChangesAsync();
+					return Results.Unauthorized();
+				}
+				Game game = newGame.ToEntity();
+				game.CreatedBy = userId;
+				game.CreatedAt = DateTime.UtcNow;
+				game.UpdatedAt = DateTime.UtcNow;
 
-					return Results.CreatedAtRoute(
-						GetGameEndpointName,
-						new { id = game.Id },
-						game.ToGameDetailsDto());
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine($"Error creating game: {ex.Message}");
-					return Results.BadRequest("Error creating game.");
-				}
-			});
+				dbContext.Games.Add(game);
+				await dbContext.SaveChangesAsync();
+
+				return Results.CreatedAtRoute(
+					GetGameEndpointName,
+					new { id = game.Id },
+					game.ToGameDetailsDto());
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error creating game: {ex.Message}");
+				return Results.BadRequest("Error creating game.");
+			}
+		});
 
 		// PUT /games
-		group.MapPut("/{id}", async (int id, UpdateGameDto updatedGame, GameStoreContext dbContext) =>
+		group.MapPut("/{id}", async (int id, UpdateGameDto updatedGame, GameStoreContext dbContext, HttpContext httpContext) =>
 			{
 				try
 				{
+
+					var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+					if (userId == 0)
+					{
+						return Results.Unauthorized();
+					}
 					Game? existingGame = await dbContext.Games.FindAsync(id);
 
 					if (existingGame is null)
@@ -69,6 +120,9 @@ public static class GamesEndpoints
 					dbContext.Entry(existingGame)
 							.CurrentValues
 							.SetValues(updatedGame.ToEntity(id));
+					existingGame.CreatedBy = userId;
+					existingGame.CreatedAt = existingGame.CreatedAt;
+					existingGame.UpdatedAt = DateTime.UtcNow;
 
 					await dbContext.SaveChangesAsync();
 					existingGame = await dbContext.Games.FindAsync(id);
@@ -83,10 +137,17 @@ public static class GamesEndpoints
 			});
 
 		// DELETE /games/1
-		group.MapDelete("/{id}", async (int id, GameStoreContext dbContext) =>
+		group.MapDelete("/{id}", async (int id, GameStoreContext dbContext, HttpContext httpContext) =>
 			{
 				try
 				{
+
+					var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+					if (userId == 0)
+					{
+						return Results.Unauthorized();
+					}
+
 					var rowsAffected = await dbContext.Games
 						.Where(game => game.Id == id)
 						.ExecuteDeleteAsync();

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GameStore.Api.Data.Migrations
 {
     [DbContext(typeof(GameStoreContext))]
-    [Migration("20241014065812_UserTable")]
-    partial class UserTable
+    [Migration("20241014092635_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,12 @@ namespace GameStore.Api.Data.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedBy")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("GenreId")
@@ -39,6 +45,9 @@ namespace GameStore.Api.Data.Migrations
                     b.Property<DateOnly>("ReleaseDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("GenreId");
@@ -52,40 +61,22 @@ namespace GameStore.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedBy")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.ToTable("Genres");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Fighting"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Roleplaying"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Sports"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Racing"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "Kids and Family"
-                        });
                 });
 
             modelBuilder.Entity("GameStore.Api.Entities.User", b =>

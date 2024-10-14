@@ -12,7 +12,8 @@ public static class GameMapping
 			Name = game.Name,
 			GenreId = game.GenreId,
 			Price = game.Price,
-			ReleaseDate = game.ReleaseDate
+			ReleaseDate = game.ReleaseDate,
+			CreatedBy = game.CreatedBy
 		};
 	}
 
@@ -33,6 +34,9 @@ public static class GameMapping
 		return new Genre()
 		{
 			Name = genre.Name,
+			CreatedBy = genre.CreatedBy,
+			CreatedAt = genre.CreatedAt,
+			UpdatedAt = genre.UpdatedAt
 		};
 	}
 
@@ -43,7 +47,10 @@ public static class GameMapping
 			game.Name,
 			game.Genre!.Name,
 			game.Price,
-			game.ReleaseDate
+			game.ReleaseDate,
+			game.CreatedBy,
+			game.CreatedAt,
+			game.UpdatedAt
 		);
 	}
 
@@ -54,7 +61,10 @@ public static class GameMapping
 			game.Name,
 			game.GenreId,
 			game.Price,
-			game.ReleaseDate
+			game.ReleaseDate,
+			game.CreatedBy,
+			game.CreatedAt,
+			game.UpdatedAt
 		);
 	}
 
