@@ -5,18 +5,6 @@ namespace GameStore.Api.Mapping;
 
 public static class GameMapping
 {
-	public static Game ToEntity(this CreateGameDto game)
-	{
-		return new Game()
-		{
-			Name = game.Name,
-			GenreId = game.GenreId,
-			Price = game.Price,
-			ReleaseDate = game.ReleaseDate,
-			CreatedBy = game.CreatedBy
-		};
-	}
-
 	public static Game ToEntity(this UpdateGameDto game, int id)
 	{
 		return new Game()
@@ -25,18 +13,23 @@ public static class GameMapping
 			Name = game.Name,
 			GenreId = game.GenreId,
 			Price = game.Price,
-			ReleaseDate = game.ReleaseDate
+			ReleaseDate = game.ReleaseDate,
+			CreatedBy = game.CreatedBy,
+			UpdatedAt = game.UpdatedAt
 		};
 	}
 
-	public static Genre ToEntity(this CreateGenreDto genre)
+	public static Game ToEntity(this CreateGameDto game)
 	{
-		return new Genre()
+		return new Game()
 		{
-			Name = genre.Name,
-			CreatedBy = genre.CreatedBy,
-			CreatedAt = genre.CreatedAt,
-			UpdatedAt = genre.UpdatedAt
+			Name = game.Name,
+			GenreId = game.GenreId,
+			Price = game.Price,
+			ReleaseDate = game.ReleaseDate,
+			CreatedBy = game.CreatedBy,
+			CreatedAt = game.CreatedAt,
+			UpdatedAt = game.UpdatedAt
 		};
 	}
 

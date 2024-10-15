@@ -7,5 +7,6 @@ public record class UpdateGameDto(
 	int GenreId,
 	[Range(1, 100)] decimal Price,
 	DateOnly ReleaseDate,
-	[Required] int CreatedBy
+	int CreatedBy,
+	DateTime UpdatedAt
 );

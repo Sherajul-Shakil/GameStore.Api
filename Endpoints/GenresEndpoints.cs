@@ -19,28 +19,32 @@ public static class GenresEndpoints
 
 		// GET /genres
 		group.MapGet("/", async (GameStoreContext dbContext, HttpContext httpContext) =>
+		{
+			try
 			{
-				try
+				int userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+				if (userId == 0)
 				{
-					var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-					if (userId == 0)
-					{
-						return Results.Unauthorized();
-					}
-
-					var genres = await dbContext.Genres
-						.AsNoTracking()
-						.Where(g => g.CreatedBy == userId)
-						.ToListAsync();
-
-					return Results.Ok(genres);
+					return Results.Unauthorized();
 				}
-				catch (Exception ex)
+
+				List<Genre>? genres = await dbContext.Genres
+					.AsNoTracking()
+					.Where(g => g.CreatedBy == userId)
+					.ToListAsync();
+
+				if (genres == null || !genres.Any())
 				{
-					Console.WriteLine($"Error getting genres: {ex.Message}");
-					return Results.BadRequest("Error getting genres.");
+					return Results.Ok(new { status = "Success", message = "Data not found", data = genres });
 				}
-			});
+				return Results.Ok(new { status = "Success", message = "Data found", data = genres });
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error getting genres: {ex.Message}");
+				return Results.BadRequest("Error getting genres.");
+			}
+		});
 
 		// GET /genres/1
 		group.MapGet("/{id}", async (int id, GameStoreContext dbContext, HttpContext httpContext) =>
@@ -53,7 +57,8 @@ public static class GenresEndpoints
 			Genre? genre = await dbContext.Genres.FindAsync(id);
 
 			return genre is null ?
-				Results.NotFound() : Results.Ok(genre.ToGenreDetailsDto());
+				Results.NotFound(new { status = "Success", message = "Data not found", data = genre }) :
+				Results.Ok(new { status = "Success", message = "Data found", data = genre.ToGenreDetailsDto() });
 		})
 		.WithName(GetGenreEndpointName);
 
@@ -62,7 +67,6 @@ public static class GenresEndpoints
 		{
 			try
 			{
-				// Get the user ID from the JWT token
 				var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
 				if (userId == 0)
 				{
@@ -91,42 +95,36 @@ public static class GenresEndpoints
 
 		// PUT /genres/1
 		group.MapPut("/{id}", async (int id, UpdateGenreDto updatedGenre, GameStoreContext dbContext, HttpContext httpContext) =>
+		{
+			try
 			{
-				try
+				Genre? existingGenre = await dbContext.Genres.FindAsync(id);
+				if (existingGenre is null)
 				{
-					Genre? existingGenre = await dbContext.Genres.FindAsync(id);
-
-					if (existingGenre is null)
-					{
-						return Results.NotFound("Genre not found.");
-					}
-
-					var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-					if (userId == 0)
-					{
-						return Results.Unauthorized();
-					}
-
-					dbContext.Entry(existingGenre)
-							.CurrentValues
-							.SetValues(updatedGenre.ToEntity(id));
-
-					existingGenre.CreatedBy = userId;
-					existingGenre.CreatedAt = existingGenre.CreatedAt;
-					existingGenre.UpdatedAt = DateTime.UtcNow;
-
-
-					await dbContext.SaveChangesAsync();
-					existingGenre = await dbContext.Genres.FindAsync(id);
-
-					return Results.Ok(existingGenre);
+					return Results.NotFound("Data not found");
 				}
-				catch (Exception ex)
+
+				var userId = int.Parse(httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+				if (userId == 0)
 				{
-					Console.WriteLine($"Error updating genre: {ex.Message}");
-					return Results.BadRequest("Error updating genre.");
+					return Results.Unauthorized();
 				}
-			});
+
+				existingGenre.Name = updatedGenre.Name;
+				// existingGenre.CreatedBy = userId;
+				existingGenre.UpdatedAt = DateTime.UtcNow;
+
+				await dbContext.SaveChangesAsync();
+				existingGenre = await dbContext.Genres.FindAsync(id);
+
+				return Results.Ok(new { status = "Success", message = "Data updated successfully", data = existingGenre });
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error updating genre: {ex.Message}");
+				return Results.BadRequest("Error updating genre.");
+			}
+		});
 
 		// DELETE /genres/1
 		group.MapDelete("/{id}", async (int id, GameStoreContext dbContext, HttpContext httpContext) =>
@@ -144,11 +142,11 @@ public static class GenresEndpoints
 
 				if (rowsAffected > 0)
 				{
-					return Results.Ok(new { status = "success", message = "Genre deleted successfully" });
+					return Results.Ok(new { status = "Success", message = "Genre deleted successfully" });
 				}
 				else
 				{
-					return Results.NotFound();
+					return Results.NotFound(new { status = "Success", message = "Data not found" });
 				}
 			}
 			catch (Exception ex)

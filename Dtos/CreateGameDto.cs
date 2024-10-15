@@ -7,7 +7,9 @@ public record class CreateGameDto(
 	int GenreId,
 	[Range(1, 100)] decimal Price,
 	DateOnly ReleaseDate,
-	[Required] int CreatedBy
+	[Required] int CreatedBy,
+	DateTime CreatedAt,
+	DateTime UpdatedAt
 
 
 );

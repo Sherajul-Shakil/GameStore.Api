@@ -21,15 +21,26 @@ public static class GenreMapping
 		);
 	}
 
-	public static Genre ToEntity(this UpdateGenreDto genre, int id)
+
+
+	public static Genre ToEntity(this CreateGenreDto genre)
 	{
 		return new Genre()
 		{
-			Id = id,
 			Name = genre.Name,
 			CreatedBy = genre.CreatedBy,
 			CreatedAt = genre.CreatedAt,
-			UpdatedAt = genre.UpdatedAt,
+			UpdatedAt = genre.UpdatedAt
 		};
 	}
+	// public static Genre ToEntity(this UpdateGenreDto genre, int id)
+	// {
+	// 	return new Genre()
+	// 	{
+	// 		Id = id,
+	// 		Name = genre.Name,
+	// 		CreatedBy = genre.CreatedBy,
+	// 		UpdatedAt = genre.UpdatedAt,
+	// 	};
+	// }
 }

@@ -34,7 +34,11 @@ public static class GamesEndpoints
 					.AsNoTracking()
 					.ToListAsync();
 
-				return Results.Ok(games);
+				if (games == null || !games.Any())
+				{
+					return Results.Ok(new { status = "Success", message = "Data not found", data = games });
+				}
+				return Results.Ok(new { status = "Success", message = "Data found", data = games });
 			}
 			catch (Exception ex)
 			{
@@ -57,9 +61,10 @@ public static class GamesEndpoints
 					.Include(game => game.Genre)
 					.Where(g => g.CreatedBy == userId)
 					.FirstOrDefaultAsync(g => g.Id == id);
-
+					
 				return game is null ?
-					Results.NotFound() : Results.Ok(game.ToGameDetailsDto());
+				Results.NotFound(new { status = "Success", message = "Data not found", data = game }) :
+				Results.Ok(new { status = "Success", message = "Data found", data = game.ToGameDetailsDto() });
 			}
 			catch (Exception ex)
 			{
@@ -117,17 +122,16 @@ public static class GamesEndpoints
 						return Results.NotFound("Game not found.");
 					}
 
-					dbContext.Entry(existingGame)
-							.CurrentValues
-							.SetValues(updatedGame.ToEntity(id));
-					existingGame.CreatedBy = userId;
-					existingGame.CreatedAt = existingGame.CreatedAt;
+					existingGame.Name = updatedGame.Name;
+					existingGame.GenreId = updatedGame.GenreId;
+					existingGame.Price = updatedGame.Price;
+					existingGame.ReleaseDate = updatedGame.ReleaseDate;
 					existingGame.UpdatedAt = DateTime.UtcNow;
-
+					
 					await dbContext.SaveChangesAsync();
 					existingGame = await dbContext.Games.FindAsync(id);
 
-					return Results.Ok(existingGame);
+					return Results.Ok(new { status = "Success", message = "Data updated successfully", data = existingGame });
 				}
 				catch (Exception ex)
 				{
@@ -154,13 +158,13 @@ public static class GamesEndpoints
 
 					if (rowsAffected > 0)
 					{
-						return Results.Ok(new { status = "success", message = "Genre deleted successfully" });
+						return Results.Ok(new { status = "Success", message = "Genre deleted successfully" });
 					}
 					else
 					{
-						return Results.NotFound();
+						return Results.NotFound(new { status = "Success", message = "Data not found" });
 					}
-				}
+					}
 				catch (Exception ex)
 				{
 					Console.WriteLine($"Error deleting game: {ex.Message}");
