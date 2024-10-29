@@ -13,30 +13,37 @@ public static class ExternalApiEndpoints
 		group.MapGet("/", async (HttpContext httpContext) =>
 		{
 			var token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjU3NyIsInVzZXJuYW1lIjoiMDE3NTg4MjEzODIiLCJwb3NpdGlvbiI6IlRlY2huaWNhbCBBc3Npc3RhbnQiLCJpYXQiOjE3MTA5OTEwODcsImV4cCI6MTc0MjUyNzA4N30.jCkILTGaFCTxc_ydF9FL7JazkoDaK0r2FXGx3Cd_2pY";
-			var apiUrls = new List<string>
+			var apiUrls = new Dictionary<string, string>
 			{
-				// "http://dmtta.icddrb.org:82/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2023-01&end_date=2024-10&report_type=1&division[]=50&district[]=81",
-				// "http://dmtta.icddrb.org:82/index.php/ExternalApi/bar_chart_quarterly_rdlc?internal=yes&adult_child=1&start_date=2023-01&end_date=2024-10&report_type=1&division[]=50&district[]=81"
-				"http://dmtta.icddrb.org:82/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://dmtta.icddrb.org:82/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2024-06&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://dmtta.icddrb.org:82/index.php/ExternalApi/bar_chart_quarterly_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://dmtta.icddrb.org:82/index.php/ExternalApi/monthly_trend_tb_cases_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://dmtta.icddrb.org:82/index.php/ExternalApi/summary_data_facility_wise_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://dmtta.icddrb.org:82/index.php/ExternalApi/summary_data_facility_wise_rdlc?internal=yes&adult_child=1&start_date=2024-06&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://actb.icddrb.org/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://actb.icddrb.org/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2024-06&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://actb.icddrb.org/index.php/ExternalApi/bar_chart_quarterly_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://actb.icddrb.org/index.php/ExternalApi/monthly_trend_tb_cases_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://actb.icddrb.org/index.php/ExternalApi/summary_data_upazilla_wise_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81",
-				"http://actb.icddrb.org/index.php/ExternalApi/summary_data_upazilla_wise_rdlc?internal=yes&adult_child=1&start_date=2024-06&end_date=2024-06&report_type=1&division[]=50&district[]=81"
+				// { "summary_data", "http://actb.icddrb.org/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				// { "monthly_trend", "http://actb.icddrb.org/index.php/ExternalApi/monthly_trend_tb_cases_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				// { "bar_chart_quarterly", "http://actb.icddrb.org/index.php/ExternalApi/bar_chart_quarterly_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				// Add more URLs as needed
+				{ "summary_data_2023_09_to_2024_06", "http://dmtta.icddrb.org:82/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "actb_summary_data_2023_09_to_2024_06", "http://actb.icddrb.org/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "summary_data_2024_06", "http://dmtta.icddrb.org:82/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2024-06&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "actb_summary_data_2024_06", "http://actb.icddrb.org/index.php/ExternalApi/summary_data_rdlc?internal=yes&adult_child=1&start_date=2024-06&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "bar_chart_quarterly_2023_09_to_2024_06", "http://dmtta.icddrb.org:82/index.php/ExternalApi/bar_chart_quarterly_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "actb_bar_chart_quarterly_2023_09_to_2024_06", "http://actb.icddrb.org/index.php/ExternalApi/bar_chart_quarterly_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "monthly_trend_tb_cases_2023_09_to_2024_06", "http://dmtta.icddrb.org:82/index.php/ExternalApi/monthly_trend_tb_cases_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "actb_monthly_trend_tb_cases_2023_09_to_2024_06", "http://actb.icddrb.org/index.php/ExternalApi/monthly_trend_tb_cases_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "summary_data_facility_wise_2023_09_to_2024_06", "http://dmtta.icddrb.org:82/index.php/ExternalApi/summary_data_facility_wise_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "summary_data_facility_wise_2024_06", "http://dmtta.icddrb.org:82/index.php/ExternalApi/summary_data_facility_wise_rdlc?internal=yes&adult_child=1&start_date=2024-06&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "actb_summary_data_upazilla_wise_2023_09_to_2024_06", "http://actb.icddrb.org/index.php/ExternalApi/summary_data_upazilla_wise_rdlc?internal=yes&adult_child=1&start_date=2023-09&end_date=2024-06&report_type=1&division[]=50&district[]=81" },
+				{ "actb_summary_data_upazilla_wise_2024_06", "http://actb.icddrb.org/index.php/ExternalApi/summary_data_upazilla_wise_rdlc?internal=yes&adult_child=1&start_date=2024-06&end_date=2024-06&report_type=1&division[]=50&district[]=81" }
+
 			};
 
 			using var httpClient = new HttpClient();
 			httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-			// Prepare the API call tasks
-			var tasks = apiUrls.Select(async url =>
+			var formattedResponses = new Dictionary<string, object>();
+
+			var tasks = apiUrls.Select(async kvp =>
 			{
+				var key = kvp.Key;
+				var url = kvp.Value;
+
 				try
 				{
 					var response = await httpClient.GetAsync(url);
@@ -44,22 +51,31 @@ public static class ExternalApiEndpoints
 					{
 						var content = await response.Content.ReadAsStringAsync();
 						var parsedJson = JsonSerializer.Deserialize<object>(content);
-						return parsedJson ?? new { error = "Null response data", url };
+						formattedResponses[key] = parsedJson ?? new { error = "Null response data", url };
 					}
 					else
 					{
 						var errorContent = await response.Content.ReadAsStringAsync();
-						return new { error = response.StatusCode, message = errorContent, url };
+						formattedResponses[key] = new
+						{
+							error = response.StatusCode.ToString(),
+							message = errorContent,
+							url
+						};
 					}
 				}
 				catch (Exception ex)
 				{
-					return new { exception = ex.Message, url };
+					formattedResponses[key] = new
+					{
+						exception = ex.Message,
+						url
+					};
 				}
 			});
 
 			// Await all tasks concurrently
-			var formattedResponses = await Task.WhenAll(tasks);
+			await Task.WhenAll(tasks);
 
 			return Results.Ok(new
 			{
