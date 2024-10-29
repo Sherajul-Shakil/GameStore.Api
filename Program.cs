@@ -36,6 +36,7 @@ var app = builder.Build();
 app.MapGamesEndpoints();
 app.MapGenresEndpoints();
 app.MapAuthEndpoints();
+app.MapExternalApiEndpoints();
 
 app.MapGet("/", () => "Hello, World!");
 
