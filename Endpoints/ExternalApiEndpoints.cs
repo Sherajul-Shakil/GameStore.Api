@@ -59,7 +59,7 @@ public static class ExternalApiEndpoints
 						formattedResponses[key] = new
 						{
 							error = response.StatusCode.ToString(),
-							message = errorContent,
+							 //message = errorContent,
 							url
 						};
 					}
